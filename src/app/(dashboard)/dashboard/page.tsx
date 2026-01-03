@@ -4,7 +4,7 @@ import SignalCard from "@/components/dashboard/SignalCard";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, RefreshCw } from "lucide-react";
+import { Loader2, RefreshCw, TimerResetIcon } from "lucide-react";
 
 export default function DashboardPage() {
   // Fetch Sinyal Real-time (Auto refresh tiap 3 detik)
@@ -54,12 +54,14 @@ export default function DashboardPage() {
         <div className="text-center py-20 bg-zinc-900 rounded border border-dashed border-zinc-800">
           <p className="text-zinc-500">
             No active signals yet. AI is scanning...
+            <TimerResetIcon className="inline-block w-4 h-4 ml-2 animate-spin" />
           </p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {signalList.map((sig: any) => (
-            <SignalCard key={sig.Symbol} data={sig} />
+          {signalList.map((sig: any, index: number) => (
+            // FIX: Gunakan fallback index jika Symbol undefined
+            <SignalCard key={sig.Symbol || index} data={sig} />
           ))}
         </div>
       )}

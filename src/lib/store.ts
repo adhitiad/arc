@@ -14,7 +14,7 @@ export const useAuthStore = create<UserState>()(
     (set) => ({
       email: null,
       role: null,
-      apiKey: null,
+      apiKey: process.env.NEXT_PUBLIC_API_KEY || null,
       login: (email, apiKey, role) => set({ email, apiKey, role }),
       logout: () => set({ email: null, apiKey: null, role: null }),
     }),

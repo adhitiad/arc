@@ -31,6 +31,13 @@ interface SignalProps {
 }
 
 export default function SignalCard({ data }: { data: SignalProps }) {
+  // Guard Clause: Jika data error/kosong
+  if (!data.Symbol) {
+    <>
+      <p className="text-red-500">Data tidak ditemukan</p>
+    </>;
+  }
+
   const isBuy = data.Action === "BUY";
 
   return (
