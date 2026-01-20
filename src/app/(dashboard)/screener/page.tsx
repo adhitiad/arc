@@ -1,5 +1,6 @@
 "use client";
 
+import LiveStockCard from "@/components/LiveStockCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -16,7 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { Filter, Loader2, Search, TrendingUp } from "lucide-react";
 import { useState } from "react";
 
-interface ScreenerResult {
+export interface ScreenerResult {
   symbol: string;
   name?: string;
   price: number;
@@ -47,12 +48,7 @@ export default function ScreenerPage() {
     queryFn: async () => {
       const params = new URLSearchParams();
       Object.entries(filters).forEach(([key, value]) => {
-        if (
-          value !== 0 &&
-          value !== false &&
-          value !== "" &&
-          value !== undefined
-        ) {
+        if (value !== 0 && value !== false && value !== undefined) {
           params.append(key, value.toString());
         }
       });
@@ -201,93 +197,8 @@ export default function ScreenerPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {results.map((asset) => (
-                <div
-                  key={asset.symbol}
-                  className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-zinc-600 transition-colors"
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-3 mb-2">
-                        <h3 className="text-lg font-semibold">
-                          {asset.symbol}
-                        </h3>
-                        <span className="px-2 py-1 bg-zinc-700 rounded text-xs">
-                          Score: {asset.signal_score}
-                        </span>
-                        {asset.bandar_status && (
-                          <span className="px-2 py-1 bg-green-900/30 text-green-400 rounded text-xs">
-                            {asset.bandar_status}
-                          </span>
-                        )}
-                      </div>
-
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm mb-3">
-                        <div>
-                          <span className="text-zinc-500">Price: </span>
-                          <span className="font-mono font-semibold">
-                            {asset.price.toLocaleString()}
-                          </span>
-                        </div>
-                        <div>
-                          <span className="text-zinc-500">Change: </span>
-                          <span
-                            className={`font-semibold ${
-                              asset.change_percent >= 0
-                                ? "text-green-400"
-                                : "text-red-400"
-                            }`}
-                          >
-                            {asset.change_percent >= 0 ? "+" : ""}
-                            {asset.change_percent.toFixed(2)}%
-                          </span>
-                        </div>
-                        {asset.rsi && (
-                          <div>
-                            <span className="text-zinc-500">RSI: </span>
-                            <span className="font-semibold">
-                              {asset.rsi.toFixed(1)}
-                            </span>
-                          </div>
-                        )}
-                        {asset.volume && (
-                          <div>
-                            <span className="text-zinc-500">Volume: </span>
-                            <span className="font-semibold">
-                              {(asset.volume / 1000000).toFixed(1)}M
-                            </span>
-                          </div>
-                        )}
-                      </div>
-
-                      {asset.ai_recommendation && (
-                        <div className="bg-blue-900/20 border border-blue-700 p-2 rounded text-sm">
-                          <span className="text-blue-400 font-semibold">
-                            AI:{" "}
-                          </span>
-                          {asset.ai_recommendation}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="ml-6 flex flex-col gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-zinc-600"
-                      >
-                        View Chart
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-zinc-600"
-                      >
-                        Add to Watchlist
-                      </Button>
-                    </div>
-                  </div>
-                </div>
+              {results.map((asset: any) => (
+                <LiveStockCard key={asset.id} asset={asset} />
               ))}
             </div>
           )}

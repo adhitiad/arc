@@ -24,6 +24,15 @@ import {
   Zap,
 } from "lucide-react";
 import { useState } from "react";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { toast } from "sonner";
 
 interface BacktestResult {
@@ -58,7 +67,7 @@ export default function BacktestPage() {
   });
 
   const [backtestResult, setBacktestResult] = useState<BacktestResult | null>(
-    null
+    null,
   );
 
   const runBacktestMutation = useMutation({
@@ -303,19 +312,84 @@ export default function BacktestPage() {
           </div>
 
           {/* Equity Curve Placeholder */}
-          <Card className="bg-zinc-900 border-zinc-800">
+          <Card className="bg-zinc-900 border-zinc-800 col-span-full">
             <CardHeader>
               <CardTitle>Equity Curve</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="h-64 bg-zinc-800 rounded border border-zinc-700 flex items-center justify-center">
-                <div className="text-center text-zinc-400">
-                  <BarChart3 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                  <p>Equity curve visualization</p>
-                  <p className="text-sm">
-                    Chart would display balance over time
-                  </p>
-                </div>
+              <div className="h-[400px] w-full">
+                {backtestResult.equity_curve &&
+                backtestResult.equity_curve.length > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={backtestResult.equity_curve}>
+                      <defs>
+                        <linearGradient
+                          id="colorBalance"
+                          x1="0"
+                          y1="0"
+                          x2="0"
+                          y2="1"
+                        >
+                          <stop
+                            offset="5%"
+                            stopColor="#2563eb"
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="95%"
+                            stopColor="#2563eb"
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid
+                        strokeDasharray="3 3"
+                        stroke="#3f3f46"
+                        vertical={false}
+                      />
+                      <XAxis
+                        dataKey="date"
+                        stroke="#71717a"
+                        fontSize={12}
+                        tickFormatter={(str) =>
+                          new Date(str).toLocaleDateString()
+                        }
+                      />
+                      <YAxis
+                        stroke="#71717a"
+                        fontSize={12}
+                        domain={["auto", "auto"]}
+                        tickFormatter={(val) => `$${(val / 1000).toFixed(0)}k`}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "#18181b",
+                          borderColor: "#27272a",
+                        }}
+                        itemStyle={{ color: "#e4e4e7" }}
+                        labelStyle={{ color: "#a1a1aa" }}
+                        formatter={(value: number | undefined) => [
+                          `$${(value ?? 0).toLocaleString()}`,
+                          "Balance",
+                        ]}
+                        labelFormatter={(label) =>
+                          new Date(label).toLocaleDateString()
+                        }
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="balance"
+                        stroke="#3b82f6"
+                        fillOpacity={1}
+                        fill="url(#colorBalance)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex h-full items-center justify-center text-zinc-500">
+                    No data available to chart
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

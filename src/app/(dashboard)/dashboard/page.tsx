@@ -1,10 +1,11 @@
 "use client";
 
+import { DashboardSkeleton } from "@/components/dashboard/DashboardSkeleton";
 import SignalCard from "@/components/dashboard/SignalCard";
 import { Button } from "@/components/ui/button";
 import { api } from "@/lib/api";
 import { useQuery } from "@tanstack/react-query";
-import { Loader2, RefreshCw, TimerResetIcon } from "lucide-react";
+import { RefreshCw, TimerResetIcon } from "lucide-react";
 
 export default function DashboardPage() {
   // Fetch Sinyal Real-time (Auto refresh tiap 3 detik)
@@ -22,11 +23,7 @@ export default function DashboardPage() {
   });
 
   if (isLoading) {
-    return (
-      <div className="h-screen flex items-center justify-center bg-zinc-950 text-white">
-        <Loader2 className="animate-spin mr-2" /> Connecting to AI Hub...
-      </div>
-    );
+    return <DashboardSkeleton />;
   }
 
   // Convert Dict ke Array untuk di-map
