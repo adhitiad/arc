@@ -1,5 +1,6 @@
 "use client";
 
+import { ReplayControls } from "@/components/ReplayControls";
 import { StockChart } from "@/components/StockChart";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,6 +36,7 @@ const generateDummyData = () => {
 export default function ChartsPage() {
   const [symbol, setSymbol] = useState("BBCA.JK");
   const [chartData, setChartData] = useState(generateDummyData());
+  const [isReplayMode, setIsReplayMode] = useState(false);
 
   return (
     <div className="space-y-6">
@@ -62,6 +64,14 @@ export default function ChartsPage() {
         </CardHeader>
         <CardContent className="p-0">
           {/* Chart Component */}
+          {isReplayMode && (
+            <ReplayControls
+              onPlay={() => console.log("Connect WS Replay")}
+              onDateChange={(date: string) => console.log("Load data", date)}
+              onReset={() => console.log("Reset Replay")}
+              onPause={() => console.log("Disconnect WS Replay")}
+            />
+          )}
           <StockChart data={chartData} />
         </CardContent>
       </Card>

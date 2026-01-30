@@ -1,6 +1,8 @@
 "use client";
 
+import { InsiderNetwork } from "@/components/InsiderNetwork";
 import LiveStockCard from "@/components/LiveStockCard";
+import { RiskCalculator } from "@/components/RiskCalculator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -81,6 +83,27 @@ export default function ScreenerPage() {
         </Button>
       </div>
 
+      <div className="col-span-1 space-y-6">
+        {/* Hitung Lot Otomatis */}
+        <RiskCalculator />
+
+        {/* Lihat Koneksi Bandar */}
+        <InsiderNetwork
+          symbol="GOTO"
+          relations={[
+            {
+              entity: "Patrick Walujo",
+              related_company: "ARTO (Bank Jago)",
+              role: "Commissioner",
+            },
+            {
+              entity: "Garibaldi Thohir",
+              related_company: "ADRO (Adaro Energy)",
+              role: "Director",
+            },
+          ]}
+        />
+      </div>
       {/* Filters */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
