@@ -1,27 +1,85 @@
 // Komponen Kartu Saham yang Live
 import { Button } from "@/components/ui/button";
-import { useMarketSocket } from "@/hooks/useMarketSocket"; // Import hook yang tadi dibuat
+import { useMarketSocket } from "@/hooks/useMarketSocket";
 
-const LiveStockCard = (asset: any) => {
+export type ScreenerIndicatorType =
+  | "signal_score"
+  | "rsi"
+  | "macd"
+  | "strength"
+  | "volume"
+  | "change_percent"
+  | "bandar_status";
+
+interface LiveStockCardProps {
+  asset: any;
+  displayedIndicator?: ScreenerIndicatorType;
+}
+
+const LiveStockCard = ({ asset, displayedIndicator = "signal_score" }: LiveStockCardProps) => {
   // Hubungkan ke socket untuk symbol spesifik ini
-  const { data: liveData } = useMarketSocket(asset.symbol);
+  const symbol = asset?.symbol ?? "UNKNOWN";
+  const { data: liveData } = useMarketSocket(symbol);
 
   // Gunakan data live jika ada, jika tidak gunakan data snapshot dari API (asset.price)
-  const currentPrice = liveData?.price || asset.price;
+  const currentPriceRaw = liveData?.price ?? asset?.price ?? 0;
+  const currentPrice = Number.isFinite(Number(currentPriceRaw))
+    ? Number(currentPriceRaw)
+    : 0;
 
-  // Hitung perubahan harga (Mock calculation for live, or use liveData change)
-  // Di real app, liveData harus mengirimkan change_percent juga
   const displayPrice = currentPrice.toLocaleString();
 
-  // Efek kedip (Flash) bisa ditambahkan di sini dengan useEffect memantau currentPrice
+  const getIndicatorDisplay = (): { label: string; value: string | number } => {
+    switch (displayedIndicator) {
+      case "signal_score":
+        return {
+          label: "Score",
+          value: asset?.signal_score ?? 0,
+        };
+      case "rsi":
+        return {
+          label: "RSI",
+          value: asset?.rsi ?? "-",
+        };
+      case "macd":
+        return {
+          label: "MACD",
+          value: asset?.macd ?? "-",
+        };
+      case "strength":
+        return {
+          label: "Strength",
+          value: asset?.strength ?? asset?.signal_score ?? 0,
+        };
+      case "volume":
+        return {
+          label: "Volume",
+          value: asset?.volume ?? "-",
+        };
+      case "change_percent":
+        return {
+          label: "Change",
+          value:
+            asset?.change_percent != null
+              ? `${asset.change_percent >= 0 ? "+" : ""}${asset.change_percent}%`
+              : "-",
+        };
+      case "bandar_status":
+        return {
+          label: "Bandar",
+          value: asset?.bandar_status ?? "-",
+        };
+    }
+  };
+
+  const { label, value } = getIndicatorDisplay();
 
   return (
     <div className="p-4 bg-zinc-800 rounded-lg border border-zinc-700 hover:border-zinc-600 transition-colors">
       <div className="flex items-center justify-between">
         <div className="flex-1">
           <div className="flex items-center gap-3 mb-2">
-            <h3 className="text-lg font-semibold">{asset.symbol}</h3>
-            {/* Indikator Live */}
+            <h3 className="text-lg font-semibold">{symbol}</h3>
             {liveData && (
               <span
                 className="flex h-2 w-2 rounded-full bg-green-500 animate-pulse"
@@ -29,7 +87,7 @@ const LiveStockCard = (asset: any) => {
               />
             )}
             <span className="px-2 py-1 bg-zinc-700 rounded text-xs">
-              Score: {asset.signal_score}
+              {label}: {value}
             </span>
           </div>
 
@@ -48,7 +106,7 @@ const LiveStockCard = (asset: any) => {
               <span
                 className={`font-semibold ${asset.change_percent >= 0 ? "text-green-400" : "text-red-400"}`}
               >
-                {asset.change_percent}%
+                {asset?.change_percent ?? 0}%
               </span>
             </div>
           </div>

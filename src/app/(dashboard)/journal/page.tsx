@@ -94,6 +94,16 @@ export default function JournalPage() {
   const totalCount = filteredTrades.length;
   const winRate = totalCount > 0 ? (winCount / totalCount) * 100 : 0;
 
+  const statsWinRate = Number(stats?.win_rate ?? 0);
+  const statsTotalPnL = Number(stats?.total_pnl ?? 0);
+  const statsMaxDrawdown = Number(stats?.max_drawdown ?? 0);
+  const statsProfitFactor = Number(stats?.profit_factor ?? 0);
+  const statsAvgWin = Number(stats?.avg_win ?? 0);
+  const statsAvgLoss = Number(stats?.avg_loss ?? 0);
+  const statsBestTrade = Number(stats?.best_trade ?? 0);
+  const statsWorstTrade = Number(stats?.worst_trade ?? 0);
+  const statsTotalPnLPercent = Number(stats?.total_pnl_percent ?? 0);
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -119,7 +129,7 @@ export default function JournalPage() {
                 <span className="text-sm text-zinc-400">Win Rate</span>
               </div>
               <div className="text-2xl font-bold text-green-400">
-                {stats.win_rate.toFixed(1)}%
+                {statsWinRate.toFixed(1)}%
               </div>
             </CardContent>
           </Card>
@@ -132,10 +142,10 @@ export default function JournalPage() {
               </div>
               <div
                 className={`text-2xl font-bold ${
-                  stats.total_pnl >= 0 ? "text-green-400" : "text-red-400"
+                  statsTotalPnL >= 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
-                ${stats.total_pnl.toLocaleString()}
+                ${statsTotalPnL.toLocaleString()}
               </div>
             </CardContent>
           </Card>
@@ -147,7 +157,7 @@ export default function JournalPage() {
                 <span className="text-sm text-zinc-400">Total Trades</span>
               </div>
               <div className="text-2xl font-bold text-purple-400">
-                {stats.total_trades}
+                {stats.total_trades ?? 0}
               </div>
             </CardContent>
           </Card>
@@ -159,7 +169,7 @@ export default function JournalPage() {
                 <span className="text-sm text-zinc-400">Max Drawdown</span>
               </div>
               <div className="text-2xl font-bold text-red-400">
-                {stats.max_drawdown.toFixed(1)}%
+                {statsMaxDrawdown.toFixed(1)}%
               </div>
             </CardContent>
           </Card>
@@ -232,7 +242,7 @@ export default function JournalPage() {
                   totalPnL >= 0 ? "text-green-400" : "text-red-400"
                 }`}
               >
-                ${totalPnL.toLocaleString()}
+                ${Number(totalPnL || 0).toLocaleString()}
               </div>
             </div>
             <div className="text-center">
@@ -312,11 +322,15 @@ export default function JournalPage() {
                           </span>
                         </div>
                         <div className="text-sm text-zinc-400 flex items-center gap-4">
-                          <span>Entry: ${trade.entry_price}</span>
+                          <span>
+                            Entry: ${Number(trade.entry_price || 0).toFixed(2)}
+                          </span>
                           {trade.exit_price && (
-                            <span>Exit: ${trade.exit_price}</span>
+                            <span>
+                              Exit: ${Number(trade.exit_price || 0).toFixed(2)}
+                            </span>
                           )}
-                          <span>Qty: {trade.quantity}</span>
+                          <span>Qty: {trade.quantity ?? 0}</span>
                         </div>
                       </div>
                     </div>
@@ -376,19 +390,19 @@ export default function JournalPage() {
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Profit Factor</span>
                     <span className="text-zinc-100">
-                      {stats.profit_factor.toFixed(2)}
+                      {statsProfitFactor.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Avg Win</span>
                     <span className="text-green-400">
-                      ${stats.avg_win.toFixed(2)}
+                      ${statsAvgWin.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Avg Loss</span>
                     <span className="text-red-400">
-                      ${stats.avg_loss.toFixed(2)}
+                      ${statsAvgLoss.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -402,19 +416,19 @@ export default function JournalPage() {
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Max Drawdown</span>
                     <span className="text-red-400">
-                      {stats.max_drawdown.toFixed(1)}%
+                      {statsMaxDrawdown.toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Best Trade</span>
                     <span className="text-green-400">
-                      ${stats.best_trade.toFixed(2)}
+                      ${statsBestTrade.toFixed(2)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Worst Trade</span>
                     <span className="text-red-400">
-                      ${stats.worst_trade.toFixed(2)}
+                      ${statsWorstTrade.toFixed(2)}
                     </span>
                   </div>
                 </div>
@@ -432,19 +446,19 @@ export default function JournalPage() {
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Win Rate</span>
                     <span className="text-green-400">
-                      {stats.win_rate.toFixed(1)}%
+                      {statsWinRate.toFixed(1)}%
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-zinc-400">Total P&L %</span>
                     <span
                       className={
-                        stats.total_pnl_percent >= 0
+                        statsTotalPnLPercent >= 0
                           ? "text-green-400"
                           : "text-red-400"
                       }
                     >
-                      {stats.total_pnl_percent.toFixed(2)}%
+                      {statsTotalPnLPercent.toFixed(2)}%
                     </span>
                   </div>
                 </div>

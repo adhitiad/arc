@@ -71,8 +71,18 @@ export function AIChatWidget() {
               </div>
             ))}
             {loading && (
-              <div className="text-xs text-zinc-500 animate-pulse">
-                AI is typing...
+              <div className="flex items-end">
+                <div className="flex items-end">
+                  <div className="flex flex-col space-y-2 text-md leading-tight mx-2 order-2 items-start">
+                    <div>
+                      <img
+                        src="https://support.signal.org/hc/article_attachments/360016877511/typing-animation-3x.gif"
+                        alt="..."
+                        className="w-16 ml-6"
+                      />
+                    </div>
+                  </div>
+                </div>
               </div>
             )}
           </div>

@@ -1,7 +1,9 @@
 "use client";
 
 import { InsiderNetwork } from "@/components/InsiderNetwork";
-import LiveStockCard from "@/components/LiveStockCard";
+import LiveStockCard, {
+  type ScreenerIndicatorType,
+} from "@/components/LiveStockCard";
 import { RiskCalculator } from "@/components/RiskCalculator";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -32,7 +34,19 @@ export interface ScreenerResult {
   ai_recommendation?: string;
 }
 
+const INDICATOR_OPTIONS: { key: ScreenerIndicatorType; label: string }[] = [
+  { key: "signal_score", label: "Signal Score" },
+  { key: "rsi", label: "RSI" },
+  { key: "macd", label: "MACD" },
+  { key: "strength", label: "Strength" },
+  { key: "volume", label: "Volume" },
+  { key: "change_percent", label: "Change %" },
+  { key: "bandar_status", label: "Bandar Status" },
+];
+
 export default function ScreenerPage() {
+  const [displayedIndicator, setDisplayedIndicator] =
+    useState<ScreenerIndicatorType>("signal_score");
   const [filters, setFilters] = useState({
     min_score: 0,
     rsi_max: 100,
@@ -55,7 +69,9 @@ export default function ScreenerPage() {
         }
       });
       const res = await api.get(`/screener/run?${params.toString()}`);
-      return res.data as ScreenerResult[];
+      const payload = res.data;
+      if (Array.isArray(payload)) return payload as ScreenerResult[];
+      return (payload?.matches || []) as ScreenerResult[];
     },
   });
 
@@ -63,7 +79,35 @@ export default function ScreenerPage() {
     setFilters((prev) => ({ ...prev, [key]: value }));
   };
 
-  const results = Array.isArray(screenerResults) ? screenerResults : [];
+  const results = (Array.isArray(screenerResults) ? screenerResults : []).map(
+    (item: any) => {
+      const symbol = item.symbol || item.Symbol || item.ticker || "UNKNOWN";
+      const price = Number(item.price ?? item.Price ?? 0);
+      const changeRaw = item.change_percent ?? item.ChangePercent ?? 0;
+      const changePercent =
+        typeof changeRaw === "string"
+          ? parseFloat(changeRaw.replace("%", ""))
+          : Number(changeRaw);
+      const prob = item.signal_score ?? item.Prob ?? item.prob ?? 0;
+      const parsedScore =
+        typeof prob === "string"
+          ? parseFloat(prob.replace("%", ""))
+          : Number(prob);
+
+      return {
+        ...item,
+        id: item.id || symbol,
+        symbol,
+        price,
+        change_percent: changePercent,
+        signal_score: Number.isFinite(parsedScore) ? parsedScore : 0,
+        rsi: item.rsi != null ? Number(item.rsi) : undefined,
+        macd: item.macd != null ? Number(item.macd) : undefined,
+        volume: item.volume,
+        bandar_status: item.bandar_status,
+      } as ScreenerResult;
+    }
+  );
 
   return (
     <div className="space-y-6">
@@ -201,10 +245,37 @@ export default function ScreenerPage() {
       {/* Results */}
       <Card className="bg-zinc-900 border-zinc-800">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            Screener Results ({results.length})
-          </CardTitle>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <CardTitle className="flex items-center gap-2">
+              <TrendingUp className="w-5 h-5" />
+              Screener Results ({results.length})
+            </CardTitle>
+            <div className="flex items-center gap-2">
+              <Label htmlFor="indicator-switch" className="text-xs text-zinc-400">
+                Kolom Indikator:
+              </Label>
+              <Select
+                value={displayedIndicator}
+                onValueChange={(v) =>
+                  setDisplayedIndicator(v as ScreenerIndicatorType)
+                }
+              >
+                <SelectTrigger
+                  id="indicator-switch"
+                  className="h-9 w-[180px] bg-zinc-800 border-zinc-700"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {INDICATOR_OPTIONS.map((opt) => (
+                    <SelectItem key={opt.key} value={opt.key}>
+                      {opt.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -221,7 +292,11 @@ export default function ScreenerPage() {
           ) : (
             <div className="space-y-3">
               {results.map((asset: any) => (
-                <LiveStockCard key={asset.id} asset={asset} />
+                <LiveStockCard
+                  key={asset.id}
+                  asset={asset}
+                  displayedIndicator={displayedIndicator}
+                />
               ))}
             </div>
           )}

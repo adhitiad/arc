@@ -1,18 +1,27 @@
 import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
+import {
   Navigation2Icon,
   Trash,
   TrendingDown,
   TrendingUp,
   Zap,
 } from "lucide-react";
+import { useState } from "react";
 
-interface AnomalyProps {
+export interface AnomalyProps {
   type: "DISTRIBUTION_DETECTED" | "ACCUMULATION_DETECTED" | "NORMAL";
   message: string;
   severity: "HIGH" | "MEDIUM" | "LOW";
 }
 
-export function AnomalyWidget({ data }: { data: AnomalyProps }) {
+function AnomalyItem({ data }: { data: AnomalyProps }) {
   if (data.type === "NORMAL") return null;
 
   const isDist = data.type === "DISTRIBUTION_DETECTED"; // Harga turun, Berita Bagus
@@ -66,6 +75,79 @@ export function AnomalyWidget({ data }: { data: AnomalyProps }) {
           </span>
         </div>
       </div>
+    </div>
+  );
+}
+
+export function AnomalyWidget({
+  data,
+}: {
+  data: AnomalyProps[] | AnomalyProps;
+}) {
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 3;
+
+  // Ensure data is always an array
+  const dataArray = Array.isArray(data) ? data : [data];
+
+  // Filter out NORMAL items
+  const filteredData = dataArray?.filter((item) => item.type !== "NORMAL");
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+  const startIndex = (currentPage - 1) * itemsPerPage;
+  const currentItems = filteredData.slice(
+    startIndex,
+    startIndex + itemsPerPage,
+  );
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && page <= totalPages) {
+      setCurrentPage(page);
+    }
+  };
+
+  if (filteredData.length === 0) return null;
+
+  return (
+    <div>
+      {/* Anomaly Items */}
+      {currentItems?.map((item, index) => (
+        <AnomalyItem key={index} data={item} />
+      ))}
+
+      {/* Pagination Controls */}
+      {totalPages > 1 && (
+        <Pagination>
+          <PaginationPrevious
+            onClick={() => currentPage > 1 && handlePageChange(currentPage - 1)}
+            className={
+              currentPage === 1 ? "pointer-events-none opacity-50" : ""
+            }
+          />
+          <PaginationContent>
+            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+              <PaginationItem key={page}>
+                <PaginationLink
+                  onClick={() => handlePageChange(page)}
+                  isActive={currentPage === page}
+                >
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            ))}
+          </PaginationContent>
+          <PaginationNext
+            onClick={() =>
+              currentPage < totalPages && handlePageChange(currentPage + 1)
+            }
+            className={
+              currentPage === totalPages ? "pointer-events-none opacity-50" : ""
+            }
+          />
+        </Pagination>
+      )}
     </div>
   );
 }

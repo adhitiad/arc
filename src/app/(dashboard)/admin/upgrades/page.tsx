@@ -23,16 +23,12 @@ import { toast } from "sonner";
 
 interface UpgradeRequest {
   id: string;
-  user_id: string;
   user_email: string;
-  current_role: "free" | "premium" | "admin" | "owner";
-  requested_role: "free" | "premium" | "admin" | "owner";
-  reason?: string;
+  requested_role: "premium" | "enterprise" | string;
+  status: "PENDING" | "APPROVE" | "REJECT" | string;
   created_at: string;
-  status: "pending" | "approved" | "rejected";
-  reviewed_by?: string;
-  reviewed_at?: string;
-  review_note?: string;
+  updated_at?: string;
+  admin_note?: string;
 }
 
 export default function AdminUpgradesPage() {
@@ -50,7 +46,7 @@ export default function AdminUpgradesPage() {
   } = useQuery({
     queryKey: ["upgradeRequests"],
     queryFn: async () => {
-      const res = await api.get("/admin/upgrade-queue");
+      const res = await api.get("/admin/admin/upgrade-queue");
       return res.data as UpgradeRequest[];
     },
   });
@@ -62,10 +58,10 @@ export default function AdminUpgradesPage() {
       action: "approve" | "reject";
       note?: string;
     }) => {
-      const res = await api.post("/admin/execute-upgrade", {
+      const res = await api.post("/admin/admin/execute-upgrade", {
         request_id: data.request_id,
-        action: data.action === "approve" ? "premium" : "reject",
-        note: data.note,
+        action: data.action === "approve" ? "APPROVE" : "REJECT",
+        note: data.note ?? "",
       });
       return res.data;
     },
@@ -91,9 +87,11 @@ export default function AdminUpgradesPage() {
     });
   };
 
+  const normalizeStatus = (status: string) => status.toUpperCase();
+
   const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "pending":
+    switch (normalizeStatus(status)) {
+      case "PENDING":
         return (
           <Badge
             variant="outline"
@@ -103,14 +101,14 @@ export default function AdminUpgradesPage() {
             PENDING
           </Badge>
         );
-      case "approved":
+      case "APPROVE":
         return (
           <Badge variant="outline" className="border-green-700 text-green-400">
             <CheckCircle className="w-3 h-3 mr-1" />
             APPROVED
           </Badge>
         );
-      case "rejected":
+      case "REJECT":
         return (
           <Badge variant="outline" className="border-red-700 text-red-400">
             <XCircle className="w-3 h-3 mr-1" />
@@ -130,14 +128,20 @@ export default function AdminUpgradesPage() {
         return "bg-red-900/30 text-red-400 border-red-700";
       case "premium":
         return "bg-blue-900/30 text-blue-400 border-blue-700";
+      case "enterprise":
+        return "bg-indigo-900/30 text-indigo-400 border-indigo-700";
       default:
         return "bg-zinc-900/30 text-zinc-400 border-zinc-700";
     }
   };
 
   const requests = upgradeRequests || [];
-  const pendingRequests = requests.filter((r) => r.status === "pending");
-  const processedRequests = requests.filter((r) => r.status !== "pending");
+  const pendingRequests = requests.filter(
+    (r) => normalizeStatus(r.status) === "PENDING"
+  );
+  const processedRequests = requests.filter(
+    (r) => normalizeStatus(r.status) !== "PENDING"
+  );
 
   return (
     <div className="space-y-6">
@@ -179,7 +183,11 @@ export default function AdminUpgradesPage() {
               <span className="text-sm text-zinc-400">Approved</span>
             </div>
             <div className="text-2xl font-bold text-green-400">
-              {requests.filter((r) => r.status === "approved").length}
+              {
+                requests.filter(
+                  (r) => normalizeStatus(r.status) === "APPROVE"
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -191,7 +199,11 @@ export default function AdminUpgradesPage() {
               <span className="text-sm text-zinc-400">Rejected</span>
             </div>
             <div className="text-2xl font-bold text-red-400">
-              {requests.filter((r) => r.status === "rejected").length}
+              {
+                requests.filter(
+                  (r) => normalizeStatus(r.status) === "REJECT"
+                ).length
+              }
             </div>
           </CardContent>
         </Card>
@@ -205,7 +217,9 @@ export default function AdminUpgradesPage() {
             <div className="text-2xl font-bold text-blue-400">
               {requests.length > 0
                 ? Math.round(
-                    (requests.filter((r) => r.status === "approved").length /
+                    (requests.filter(
+                      (r) => normalizeStatus(r.status) === "APPROVE"
+                    ).length /
                       requests.length) *
                       100
                   )
@@ -260,16 +274,10 @@ export default function AdminUpgradesPage() {
                         </div>
 
                         <div className="text-sm text-zinc-400 flex items-center gap-4">
-                          <span>
-                            <Badge
-                              variant="outline"
-                              className={`text-xs ${getRoleBadgeColor(
-                                request.current_role
-                              )}`}
-                            >
-                              {request.current_role.toUpperCase()}
-                            </Badge>
-                            {" → "}
+                          <span className="flex items-center gap-2">
+                            <span className="text-xs text-zinc-500">
+                              Requested
+                            </span>
                             <Badge
                               variant="outline"
                               className={`text-xs ${getRoleBadgeColor(
@@ -324,10 +332,12 @@ export default function AdminUpgradesPage() {
                     </div>
                   </div>
 
-                  {request.reason && (
+                  {request.admin_note && (
                     <div className="mt-3 p-3 bg-zinc-700 rounded text-sm">
-                      <strong className="text-zinc-300">Reason:</strong>{" "}
-                      <span className="text-zinc-400">{request.reason}</span>
+                      <strong className="text-zinc-300">Admin Note:</strong>{" "}
+                      <span className="text-zinc-400">
+                        {request.admin_note}
+                      </span>
                     </div>
                   )}
                 </div>
@@ -369,9 +379,8 @@ export default function AdminUpgradesPage() {
                   </div>
                 </div>
                 <div>
-                  <span className="text-zinc-500">Request:</span>
+                  <span className="text-zinc-500">Requested Role:</span>
                   <div className="font-semibold text-zinc-100">
-                    {selectedRequest.current_role.toUpperCase()} →{" "}
                     {selectedRequest.requested_role.toUpperCase()}
                   </div>
                 </div>
@@ -387,11 +396,11 @@ export default function AdminUpgradesPage() {
                 </div>
               </div>
 
-              {selectedRequest.reason && (
+              {selectedRequest.admin_note && (
                 <div className="mt-4">
-                  <span className="text-zinc-500 text-sm">Reason:</span>
+                  <span className="text-zinc-500 text-sm">Admin Note:</span>
                   <div className="mt-1 p-3 bg-zinc-700 rounded text-sm text-zinc-300">
-                    {selectedRequest.reason}
+                    {selectedRequest.admin_note}
                   </div>
                 </div>
               )}
@@ -467,7 +476,7 @@ export default function AdminUpgradesPage() {
                         {request.user_email}
                       </div>
                       <div className="text-xs text-zinc-400">
-                        {request.current_role} → {request.requested_role}
+                        Requested: {request.requested_role}
                       </div>
                     </div>
                   </div>
@@ -475,7 +484,7 @@ export default function AdminUpgradesPage() {
                     {getStatusBadge(request.status)}
                     <span className="text-xs text-zinc-500">
                       {new Date(
-                        request.reviewed_at || request.created_at
+                        request.updated_at || request.created_at
                       ).toLocaleDateString()}
                     </span>
                   </div>

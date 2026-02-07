@@ -152,7 +152,7 @@ export default function WatchlistPage() {
             <div className="mt-3 space-y-2">
               {searchResults.map((asset: any) => (
                 <div
-                  key={asset.symbol}
+                  key={asset.symbol || asset.ticker || `${asset.category}-${asset.name}`}
                   className="flex items-center justify-between p-3 bg-zinc-800 rounded border border-zinc-700"
                 >
                   <div>
@@ -206,9 +206,9 @@ export default function WatchlistPage() {
             </div>
           ) : (
             <div className="space-y-3">
-              {watchlistItems.map((item: WatchlistItem) => (
+              {watchlistItems.map((item: WatchlistItem, index) => (
                 <div
-                  key={item.symbol}
+                  key={item.symbol || index}
                   className="flex items-center justify-between p-4 bg-zinc-800 rounded border border-zinc-700"
                 >
                   <div className="flex items-center gap-4">
